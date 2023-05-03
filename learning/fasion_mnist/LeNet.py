@@ -10,19 +10,21 @@ class LeNet(nn.Module):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.conv = nn.Sequential(
-            nn.Conv2d(1, 6, 5),
-            nn.Sigmoid(),
-            nn.MaxPool2d(2, 2),
-            nn.Conv2d(6, 16, 5),
-            nn.Sigmoid(),
-            nn.MaxPool2d(2, 2),
+            nn.Conv2d(1, 6, 5, padding=2),  # (28 - 5 + 0) / 1 + 1 = 24 # [6, 24, 24]
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),  # 6 12 12
+            # nn.AvgPool2d(2, 2),
+            nn.Conv2d(6, 16, 5),  # 16 8 8
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),  # 16 4 4
+            # nn.AvgPool2d(2, 2),
         )
         self.flatten = nn.Flatten()
         self.fc = nn.Sequential(
-            nn.Linear(16 * 4 * 4, 120),
-            nn.Sigmoid(),
+            nn.Linear(16 * 5 * 5, 120),
+            nn.ReLU(),
             nn.Linear(120, 84),
-            nn.Sigmoid(),
+            nn.ReLU(),
             nn.Linear(84, 10),
         )
 
@@ -41,9 +43,9 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = LeNet().to(device)
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=1e-2)
+    optimizer = torch.optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
 
-    epochs = 5
+    epochs = 10
     for t in range(epochs):
         print(f"Epoch {t+1}\n-------------------------------")
         train(train_dataloader, model, loss_fn, optimizer, device)
